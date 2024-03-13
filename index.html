@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compatibility Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f6f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        input,
+        select {
+            margin-bottom: 20px;
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        select {
+            appearance: none;
+            background-color: #f9f9f9;
+            color: #555;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 18px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 20px;
+            color: #555;
+        }
+
+        .heart {
+            color: red;
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Compatibility Calculator</h1>
+        <form id="compatibilityForm">
+            <label for="name1">Name 1:</label>
+            <input type="text" id="name1" required>
+            <label for="name2">Name 2:</label>
+            <input type="text" id="name2" required>
+            <label for="relationshipType">Relationship Type:</label>
+            <select id="relationshipType" required>
+                <option value="">Select Relationship Type</option>
+                <option value="Love">Love</option>
+                <option value="Friendship">Friendship</option>
+                <option value="Relationship">Relationship</option>
+            </select>
+            <button type="submit">Calculate Compatibility</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Function to calculate compatibility
+        function calculateCompatibility(name1, name2, relationshipType) {
+            // Define weights for different relationship types
+            const weights = {
+                Love: 1.8,
+                Friendship: 0.6,
+                Relationship: 0.7
+            };
+
+            // Special names
+            const specialNames = ["ashlesha", "prakash"];
+
+            // Check if both names are special names
+            if (specialNames.includes(name1.toLowerCase()) && specialNames.includes(name2.toLowerCase())) {
+                return 100;
+            }
+
+            // Get the weight for the selected relationship type
+            const weight = weights[relationshipType];
+
+            // Calculate Levenshtein distance between the names
+            function levenshteinDistance(a, b) {
+                if (a.length === 0) return b.length;
+                if (b.length === 0) return a.length;
+
+                const matrix = [];
+
+                // Initialize matrix
+                for (let i = 0; i <= b.length; i++) {
+                    matrix[i] = [i];
+                }
+
+                for (let j = 0; j <= a.length; j++) {
+                    matrix[0][j] = j;
+                }
+
+                // Fill matrix
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1, // Substitution
+                                matrix[i][j - 1] + 1,     // Insertion
+                                matrix[i - 1][j] + 1      // Deletion
+                            );
+                        }
+                    }
+                }
+
+                return matrix[b.length][a.length];
+            }
+
+            // Calculate Levenshtein distance between the names
+            const distance = levenshteinDistance(name1.toLowerCase(), name2.toLowerCase());
+
+            // Calculate similarity based on distance
+            const maxLength = Math.max(name1.length, name2.length);
+            const similarity = 1 - distance / maxLength;
+
+            // Calculate compatibility percentage
+            const compatibilityPercentage = (similarity * weight) * 100;
+
+            // Round compatibility percentage to two decimal places
+            return Math.round(compatibilityPercentage * 100) / 100;
+        }
+
+        // Handle form submission
+        const form = document.getElementById('compatibilityForm');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const name1 = document.getElementById('name1').value.trim();
+            const name2 = document.getElementById('name2').value.trim();
+            const relationshipType = document.getElementById('relationshipType').value.trim();
+
+            // Validate input
+            if (!name1 || !name2 || !relationshipType) {
+                alert('Please fill out all fields');
+                return;
+            }
+
+            // Calculate compatibility
+            const compatibility = calculateCompatibility(name1, name2, relationshipType);
+
+            // Display result
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `Compatibility between ${name1} and ${name2} in ${relationshipType}: ${compatibility.toFixed(2)}%`;
+
+            // Show heart if compatibility is above 50%
+            if (compatibility > 50) {
+                resultDiv.innerHTML += ' <span class="heart">❤️</span>';
+            }
+        });
+    </script>
+</body>
+
+</html>
